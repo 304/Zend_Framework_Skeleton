@@ -27,26 +27,9 @@ $application->getBootstrap()->bootstrap('doctrine');
 
 require_once __DIR__ . '/../Bootstrap.php';
 
-$em = $application->getBootstrap()->getResource('doctrine');
-
-$doctrineConfig = $application->getBootstrap()->getOption('doctrine');
-
-/*
-$helperSet = new \Symfony\Component\Console\Helper\HelperSet(array(
-    'em' => new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em, APPLICATION_PATH . "/configs/mappings"),
-    'dialog' => new \Symfony\Component\Console\Helper\DialogHelper(),
-
-));
-
-\Doctrine\ORM\Tools\Console\ConsoleRunner::run($helperSet);
-*/
-
 // Retrieve Doctrine Container resource
 /** @var Doctrine\ORM\EntityManager */
-$container = $application->getBootstrap()->getResource('doctrine');
-
-
-
+$em = $application->getBootstrap()->getResource('doctrine');
 
 // Console
 $cli = new \Symfony\Component\Console\Application(
@@ -56,15 +39,17 @@ $cli = new \Symfony\Component\Console\Application(
 
 try {
     // Bootstrapping Console HelperSet
-    $helperSet = array();
+    $helperSet = array(
 
-    if (($dbal = $container->getConnection()) !== null) {
-        $helperSet['db'] = new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($dbal);
-    }
+        // DBAL init
+        'db' => new \Doctrine\DBAL\Tools\Console\Helper\ConnectionHelper($em->getConnection()),
+        
+        // ORM init
+        'em' => new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em),
 
-    $helperSet['em'] = new \Doctrine\ORM\Tools\Console\Helper\EntityManagerHelper($em);
-
-    $helperSet['dialog'] = new \Symfony\Component\Console\Helper\DialogHelper();
+        // CLI dialog init
+        'dialog' => new \Symfony\Component\Console\Helper\DialogHelper(),
+    );
     
 } catch (\Exception $e) {
     $cli->renderException($e, new \Symfony\Component\Console\Output\ConsoleOutput());
