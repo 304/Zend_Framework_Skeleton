@@ -1,7 +1,1 @@
-Doctrine2 + Zend Framework + DocrineCLI + Migrations basic package
-
-Very simple Doctrine+ZF intergration.
-
-doctrine console script - application/bin/doctrine.php
-doctrine bootstrap - application/Bootstrap.php
-doctrine configs params - application/configs/application.ini
+Not yet
