@@ -1,44 +1,24 @@
 <?php
+namespace Entities;
 /**
- * @Entity
+ * @Entity(repositoryClass="\Repositories\User")
  * @Table(name="user")
  */
-class Application_Model_Entities_User
+class User
 {
     /**
-     * @Id @Column(type="integer")
+     * @Id @Column(type="integer", name="id")
      * @GeneratedValue(strategy="AUTO")
      */
-    private $userId;
+    private $id;
 
-    /** @Column(type="string", length=50) */
-    private $name;
-
-
-    /** @Column(type="date") */
-    private $birthday;
-
-    public function setName ($name)
+    /**
+     * Get id
+     *
+     * @return integer $id
+     */
+    public function getId()
     {
-        $this->name = $name;
-        return true;
+        return $this->id;
     }
-
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    public function getBirthday()
-    {
-        return $this->birthday;
-    }
-
-    public function setBirthday($birthday)
-    {
-        $this->birthday = new DateTime($birthday);
-        return true;
-    }
-
 }
-
