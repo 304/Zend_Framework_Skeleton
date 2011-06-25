@@ -99,6 +99,31 @@ class OraclePlatform extends AbstractPlatform
     {
         return 'SYS_GUID()';
     }
+
+    public function getDateDiffExpression($date1, $date2)
+    {
+        return '('.$date1 . '-'.$date2.')';
+    }
+
+    public function getDateAddDaysExpression($date, $days)
+    {
+        return '(' . $date . '+' . (int)$days . ')';
+    }
+
+    public function getDateSubDaysExpression($date, $days)
+    {
+        return '(' . $date . '-' . (int)$days . ')';
+    }
+
+    public function getDateAddMonthExpression($date, $months)
+    {
+        return "ADD_MONTHS(" . $date . ", " . (int)$months . ")";
+    }
+
+    public function getDateSubMonthExpression($date, $months)
+    {
+        return "ADD_MONTHS(" . $date . ", -" . (int)$months . ")";
+    }
     
     /**
      * Gets the SQL used to create a sequence that starts with a given value
@@ -116,6 +141,12 @@ class OraclePlatform extends AbstractPlatform
         return 'CREATE SEQUENCE ' . $sequence->getQuotedName($this) .
                ' START WITH ' . $sequence->getInitialValue() .
                ' MINVALUE ' . $sequence->getInitialValue() . 
+               ' INCREMENT BY ' . $sequence->getAllocationSize();
+    }
+    
+    public function getAlterSequenceSQL(\Doctrine\DBAL\Schema\Sequence $sequence)
+    {
+        return 'ALTER SEQUENCE ' . $sequence->getQuotedName($this) . 
                ' INCREMENT BY ' . $sequence->getAllocationSize();
     }
 
@@ -524,7 +555,7 @@ LEFT JOIN all_cons_columns r_cols
             $fields[] = $column->getQuotedName($this);
         }
         if (count($fields)) {
-            $sql[] = 'ALTER TABLE ' . $diff->name . ' DROP COLUMN ' . implode(', ', $fields);
+            $sql[] = 'ALTER TABLE ' . $diff->name . ' DROP (' . implode(', ', $fields).')';
         }
 
         if ($diff->newName !== false) {
@@ -567,12 +598,12 @@ LEFT JOIN all_cons_columns r_cols
      * @param integer $offset       start reading from given offset
      * @return string               the modified query
      */
-    public function modifyLimitQuery($query, $limit, $offset = null)
+    protected function doModifyLimitQuery($query, $limit, $offset = null)
     {
         $limit = (int) $limit;
         $offset = (int) $offset;
         if (preg_match('/^\s*SELECT/i', $query)) {
-            if ( ! preg_match('/\sFROM\s/i', $query)) {
+            if (!preg_match('/\sFROM\s/i', $query)) {
                 $query .= " FROM dual";
             }
             if ($limit > 0) {
@@ -580,13 +611,11 @@ LEFT JOIN all_cons_columns r_cols
                 $column = '*';
                 if ($offset > 0) {
                     $min = $offset + 1;
-                    $query = 'SELECT b.'.$column.' FROM ('.
-                                 'SELECT a.*, ROWNUM AS doctrine_rownum FROM ('
-                                   . $query . ') a '.
-                              ') b '.
-                              'WHERE doctrine_rownum BETWEEN ' . $min .  ' AND ' . $max;
+                    $query = 'SELECT * FROM (SELECT a.' . $column . ', rownum AS doctrine_rownum FROM (' .
+                            $query .
+                            ') a WHERE rownum <= ' . $max . ') WHERE doctrine_rownum >= ' . $min;
                 } else {
-                    $query = 'SELECT a.'.$column.' FROM (' . $query .') a WHERE ROWNUM <= ' . $max;
+                    $query = 'SELECT a.' . $column . ' FROM (' . $query . ') a WHERE ROWNUM <= ' . $max;
                 }
             }
         }

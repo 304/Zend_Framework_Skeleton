@@ -99,6 +99,31 @@ class MySqlPlatform extends AbstractPlatform
         return 'CONCAT(' . join(', ', (array) $args) . ')';
     }
 
+    public function getDateDiffExpression($date1, $date2)
+    {
+        return 'DATEDIFF(' . $date1 . ', ' . $date2 . ')';
+    }
+
+    public function getDateAddDaysExpression($date, $days)
+    {
+        return 'DATE_ADD(' . $date . ', INTERVAL ' . (int)$days . ' DAY)';
+    }
+
+    public function getDateSubDaysExpression($date, $days)
+    {
+        return 'DATE_SUB(' . $date . ', INTERVAL ' . (int)$days . ' DAY)';
+    }
+
+    public function getDateAddMonthExpression($date, $months)
+    {
+        return 'DATE_ADD(' . $date . ', INTERVAL ' . (int)$months . ' MONTH)';
+    }
+
+    public function getDateSubMonthExpression($date, $months)
+    {
+        return 'DATE_SUB(' . $date . ', INTERVAL ' . (int)$months . ' MONTH)';
+    }
+
     public function getListDatabasesSQL()
     {
         return 'SHOW DATABASES';
@@ -344,7 +369,13 @@ class MySqlPlatform extends AbstractPlatform
      *                              'comment' => 'Foo',
      *                              'charset' => 'utf8',
      *                              'collate' => 'utf8_unicode_ci',
-     *                              'type'    => 'innodb',
+     *                              'engine' => 'innodb',
+     *                              'foreignKeys' => array(
+     *                                  new ForeignKeyConstraint(),
+     *                                  new ForeignKeyConstraint(),
+     *                                  new ForeignKeyConstraint(),
+     *                                  // etc
+     *                              )
      *                          );
      *
      * @return void
@@ -382,7 +413,7 @@ class MySqlPlatform extends AbstractPlatform
         $optionStrings = array();
 
         if (isset($options['comment'])) {
-            $optionStrings['comment'] = 'COMMENT = ' . $this->quote($options['comment'], 'text');
+            $optionStrings['comment'] = 'COMMENT = ' . $options['comment'];
         }
         if (isset($options['charset'])) {
             $optionStrings['charset'] = 'DEFAULT CHARACTER SET ' . $options['charset'];
@@ -456,7 +487,11 @@ class MySqlPlatform extends AbstractPlatform
         if (count($queryParts) > 0) {
             $sql[] = 'ALTER TABLE ' . $diff->name . ' ' . implode(", ", $queryParts);
         }
-        $sql = array_merge($sql, $this->_getAlterTableIndexForeignKeySQL($diff));
+        $sql = array_merge(
+            $this->getPreAlterTableIndexForeignKeySQL($diff),
+            $sql,
+            $this->getPostAlterTableIndexForeignKeySQL($diff)
+        );
         return $sql;
     }
     

@@ -719,6 +719,68 @@ abstract class AbstractPlatform
         return 'COS(' . $value . ')';
     }
 
+    /**
+     * Calculate the difference in days between the two passed dates.
+     *
+     * Computes diff = date1 - date2
+     *
+     * @param string $date1
+     * @param string $date2
+     * @return string
+     */
+    public function getDateDiffExpression($date1, $date2)
+    {
+        throw DBALException::notSupported(__METHOD__);
+    }
+
+    /**
+     * Add the number of given days to a date.
+     *
+     * @param string $date
+     * @param int $days
+     * @return string
+     */
+    public function getDateAddDaysExpression($date, $days)
+    {
+        throw DBALException::notSupported(__METHOD__);
+    }
+
+    /**
+     * Substract the number of given days to a date.
+     *
+     * @param string $date
+     * @param int $days
+     * @return string
+     */
+    public function getDateSubDaysExpression($date, $days)
+    {
+        throw DBALException::notSupported(__METHOD__);
+    }
+
+    /**
+     * Add the number of given months to a date.
+     *
+     * @param string $date
+     * @param int $months
+     * @return string
+     */
+    public function getDateAddMonthExpression($date, $months)
+    {
+        throw DBALException::notSupported(__METHOD__);
+    }
+
+    /**
+     * Substract the number of given months to a date.
+     *
+     * @param string $date
+     * @param int $months
+     * @return string
+     */
+    public function getDateSubMonthExpression($date, $months)
+    {
+        throw DBALException::notSupported(__METHOD__);
+    }
+
     public function getForUpdateSQL()
     {
         return 'FOR UPDATE';
@@ -886,6 +948,7 @@ abstract class AbstractPlatform
             if(strtolower($columnData['type']) == "string" && $columnData['length'] === null) {
                 $columnData['length'] = 255;
             }
+            $columnData['unsigned'] = $column->getUnsigned();
             $columnData['precision'] = $column->getPrecision();
             $columnData['scale'] = $column->getScale();
             $columnData['default'] = $column->getDefault();
@@ -980,6 +1043,17 @@ abstract class AbstractPlatform
      * @throws DBALException
      */
     public function getCreateSequenceSQL(\Doctrine\DBAL\Schema\Sequence $sequence)
+    {
+        throw DBALException::notSupported(__METHOD__);
+    }
+    
+    /**
+     * Gets the SQL statement to change a sequence on this platform.
+     * 
+     * @param \Doctrine\DBAL\Schema\Sequence $sequence 
+     * @return string
+     */
+    public function getAlterSequenceSQL(\Doctrine\DBAL\Schema\Sequence $sequence)
     {
         throw DBALException::notSupported(__METHOD__);
     }
@@ -1111,13 +1185,31 @@ abstract class AbstractPlatform
         throw DBALException::notSupported(__METHOD__);
     }
 
-    /**
-     * Common code for alter table statement generation that updates the changed Index and Foreign Key definitions.
-     *
-     * @param TableDiff $diff
-     * @return array
-     */
-    protected function _getAlterTableIndexForeignKeySQL(TableDiff $diff)
+    protected function getPreAlterTableIndexForeignKeySQL(TableDiff $diff)
+    {
+        $tableName = $diff->name;
+        
+        $sql = array();
+        if ($this->supportsForeignKeyConstraints()) {
+            foreach ($diff->removedForeignKeys AS $foreignKey) {
+                $sql[] = $this->getDropForeignKeySQL($foreignKey, $tableName);
+            }
+            foreach ($diff->changedForeignKeys AS $foreignKey) {
+                $sql[] = $this->getDropForeignKeySQL($foreignKey, $tableName);
+            }
+        }
+
+        foreach ($diff->removedIndexes AS $index) {
+            $sql[] = $this->getDropIndexSQL($index, $tableName);
+        }
+        foreach ($diff->changedIndexes AS $index) {
+            $sql[] = $this->getDropIndexSQL($index, $tableName);
+        }
+
+        return $sql;
+    }
+    
+    protected function getPostAlterTableIndexForeignKeySQL(TableDiff $diff)
     {
         if ($diff->newName !== false) {
             $tableName = $diff->newName;
@@ -1127,14 +1219,10 @@ abstract class AbstractPlatform
 
         $sql = array();
         if ($this->supportsForeignKeyConstraints()) {
-            foreach ($diff->removedForeignKeys AS $foreignKey) {
-                $sql[] = $this->getDropForeignKeySQL($foreignKey, $tableName);
-            }
             foreach ($diff->addedForeignKeys AS $foreignKey) {
                 $sql[] = $this->getCreateForeignKeySQL($foreignKey, $tableName);
             }
             foreach ($diff->changedForeignKeys AS $foreignKey) {
-                $sql[] = $this->getDropForeignKeySQL($foreignKey, $tableName);
                 $sql[] = $this->getCreateForeignKeySQL($foreignKey, $tableName);
             }
         }
@@ -1142,15 +1230,22 @@ abstract class AbstractPlatform
         foreach ($diff->addedIndexes AS $index) {
             $sql[] = $this->getCreateIndexSQL($index, $tableName);
         }
-        foreach ($diff->removedIndexes AS $index) {
-            $sql[] = $this->getDropIndexSQL($index, $tableName);
-        }
         foreach ($diff->changedIndexes AS $index) {
-            $sql[] = $this->getDropIndexSQL($index, $tableName);
             $sql[] = $this->getCreateIndexSQL($index, $tableName);
         }
 
         return $sql;
+    }
+    
+    /**
+     * Common code for alter table statement generation that updates the changed Index and Foreign Key definitions.
+     *
+     * @param TableDiff $diff
+     * @return array
+     */
+    protected function _getAlterTableIndexForeignKeySQL(TableDiff $diff)
+    {
+        return array_merge($this->getPreAlterTableIndexForeignKeySQL($diff), $this->getPostAlterTableIndexForeignKeySQL($diff));
     }
 
     /**
@@ -2074,13 +2169,40 @@ abstract class AbstractPlatform
         return 'H:i:s';
     }
 
-    public function modifyLimitQuery($query, $limit, $offset = null)
+    /**
+     * Modify limit query
+     * 
+     * @param string $query
+     * @param int $limit
+     * @param int $offset
+     * @return string
+     */
+    final public function modifyLimitQuery($query, $limit, $offset = null)
     {
-        if ( ! is_null($limit)) {
+        if ( $limit !== null) {
+            $limit = (int)$limit;
+        }
+
+        if ( $offset !== null) {
+            $offset = (int)$offset;
+        }
+
+        return $this->doModifyLimitQuery($query, $limit, $offset);
+    }
+
+    /**
+     * @param string $query
+     * @param int $limit
+     * @param int $offset
+     * @return string
+     */
+    protected function doModifyLimitQuery($query, $limit, $offset)
+    {
+        if ( $limit !== null) {
             $query .= ' LIMIT ' . $limit;
         }
 
-        if ( ! is_null($offset)) {
+        if ( $offset !== null) {
             $query .= ' OFFSET ' . $offset;
         }
 

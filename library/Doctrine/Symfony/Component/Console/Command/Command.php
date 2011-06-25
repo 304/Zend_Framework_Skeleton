@@ -60,6 +60,16 @@ class Command
             throw new \LogicException('The command name cannot be empty.');
         }
     }
+    
+    /**
+     * Get the application instance
+     * 
+     * @return Application
+     */
+    public function getApplication()
+    {
+        return $this->application;
+    }
 
     /**
      * Sets the application instance for this command.
