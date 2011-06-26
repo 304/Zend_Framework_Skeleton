@@ -17,12 +17,14 @@ class SKL_Oauth_UserProfile
     const SERVICE_LINKEDIN = 'linkedin';
     const SERVICE_FACEBOOK = 'facebook';
     const SERVICE_YAHOO    = 'yahoo';
+    const SERVICE_GITHUB   = 'github';
 
     protected $_services = array(
         self::SERVICE_TWITTER,
         self::SERVICE_LINKEDIN,
         self::SERVICE_FACEBOOK,
         self::SERVICE_YAHOO,
+        self::SERVICE_GITHUB,
     );
 
     /**

@@ -20,11 +20,11 @@ class IndexController extends Zend_Controller_Action
         $this->_user = ( Zend_Auth::getInstance()->hasIdentity() )
                      ? Zend_Auth::getInstance()->getIdentity()
                      : new \Entities\User();
-        
     }
-
+    
     public function indexAction()
     {
     }
+
 }
 
