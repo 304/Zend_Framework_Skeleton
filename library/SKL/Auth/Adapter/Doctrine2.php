@@ -274,7 +274,10 @@ class SKL_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
         } elseif (count($resultIdentities) == 1) {
             $resultIdentity = $resultIdentities[0];
 
-            if ( $this->_checkCredentialCorrect($resultIdentity, $this->_credential) ) {
+            $checkLoginCorrect = $this->_checkLoginCorrect($resultIdentity, $this->_identity);
+            $checkCredentialCorrect = $this->_checkCredentialCorrect($resultIdentity, $this->_credential);
+            
+            if ( $checkLoginCorrect && $checkCredentialCorrect ) {
                 $this->_authenticateResultInfo['code'] = Zend_Auth_Result::SUCCESS;
                 $this->_authenticateResultInfo['identity'] = $this->_identity;
                 $this->_authenticateResultInfo['messages'][] = 'Authentication successful.';
@@ -287,6 +290,29 @@ class SKL_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
         }
 
         return $this->_authenticateCreateAuthResult();
+    }
+
+    /**
+     * Check login is correct. Because DQL is case-insensitive we need to check this.
+     * 
+     * @example "AdMin" and "admin" is not the same users
+     * @param type $resultIdentity
+     * @param type $identity
+     * @return boolean 
+     */
+    protected function _checkLoginCorrect($resultIdentity, $identity)
+    {
+        $result = false;
+        // try to find method "getUsername" in model (for example)
+        $method = 'get' . Doctrine\Common\Util\Inflector::classify($this->_identityColumn);
+        if (method_exists($resultIdentity, $method)) {
+            $objectIdentity = $resultIdentity->$method();
+            if ( strcmp($objectIdentity, $identity) == 0 ) {
+                $result = true;
+            }
+        }
+        return $result;
+        
     }
 
     /**
@@ -320,5 +346,4 @@ class SKL_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
             $this->_authenticateResultInfo['messages']
         );
     }
-
 }
