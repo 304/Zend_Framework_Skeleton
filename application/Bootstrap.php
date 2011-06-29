@@ -13,17 +13,5 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         $router = $this->bootstrap('Router')->getResource('Router');
         $router->addConfig($routesConfig);
     }    
-    
-    /**
-     * Init action helpers
-     * @return void
-     */
-    protected function _initActionHelpers()
-    {
-        Zend_Controller_Action_HelperBroker::addHelper(
-            new SKL_Controller_Action_Helper_Dependencies()
-        );
-
-    }
 }
 
