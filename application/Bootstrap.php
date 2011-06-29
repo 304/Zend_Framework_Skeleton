@@ -14,32 +14,42 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         $router->addConfig($routesConfig);
     }    
     
+    /**
+     * Init action helpers
+     * @return void
+     */
+    protected function _initActionHelpers()
+    {
+        Zend_Controller_Action_HelperBroker::addHelper(
+            new SKL_Controller_Action_Helper_Dependencies()
+        );
+
+    }
+
+    /**
+     * @todo: move to resource
+     */
     protected function _initDoctrineAutoloader()
     {
         // Autoloader config
         require_once 'Doctrine/Common/ClassLoader.php';
 
-        $doctrineAutoloader = array(new \Doctrine\Common\ClassLoader(), 'loadClass');
-
         $autoloader = Zend_Loader_Autoloader::getInstance();
 
-        // Push the doctrine autoloader to load for the Doctrine\ namespace
-        $autoloader->pushAutoloader($doctrineAutoloader, 'Doctrine');
+        $loadNamespaces = array(
+            'Doctrine'     => APPLICATION_PATH . '/../library/',
+            'Symfony'      => APPLICATION_PATH . '/../library/Doctrine/',
+            'Entities'     => APPLICATION_PATH . '/models/',
+            'Proxies'      => APPLICATION_PATH . '/models/',
+            'Repositories' => APPLICATION_PATH . '/models/',
+            'Tools'        => APPLICATION_PATH . '/../library/SKL/Doctrine',
+        );
 
-        $classLoader = new \Doctrine\Common\ClassLoader('Symfony', realpath(APPLICATION_PATH . '/../library/Doctrine/'), 'loadClass');
-        $autoloader->pushAutoloader(array($classLoader, 'loadClass'), 'Symfony');
 
-        // Entities loader
-        $modelLoader = new \Doctrine\Common\ClassLoader('Entities', realpath(APPLICATION_PATH . '/models/'));
-        $autoloader->pushAutoloader(array($modelLoader, 'loadClass'), 'Entities');
-
-        // Repository loader
-        $modelLoader = new \Doctrine\Common\ClassLoader('Repositories', realpath(APPLICATION_PATH . '/models/'));
-        $autoloader->pushAutoloader(array($modelLoader, 'loadClass'), 'Repositories');
-
-        // Migrations loader
-        $modelLoader = new \Doctrine\Common\ClassLoader('Tools', realpath(APPLICATION_PATH . '/../library/SKL/Doctrine/'));
-        $autoloader->pushAutoloader(array($modelLoader, 'loadClass'), 'Tools');
+        foreach ($loadNamespaces as $namespace => $path) {
+            $loader = new \Doctrine\Common\ClassLoader($namespace, realpath($path));
+            $autoloader->pushAutoloader(array($loader, 'loadClass'), $namespace);
+        }        
     }
 
     /**

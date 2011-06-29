@@ -1,85 +1,71 @@
 <?php
 /**
- * @todo: test it and improve implementation
+ * Dependencies injection
+ * @todo: think again :)
  */
 class SKL_Controller_Action_Helper_Dependencies extends Zend_Controller_Action_Helper_Abstract
 {
+    /**
+     * Pre dispatch
+     */
     public function preDispatch()
     {
         $controller = $this->getActionController();
-
-        // Get all setter methods
-        $initMethods = $this->_getInitMethods();
-
-        foreach($initMethods as $varName => $methodName) {
-
-            if ( $this->_hasVariable($controller, $varName) ) {
-
-                // Init variable
-                $obj = new ReflectionObject($controller);
-                $prop = $obj->getProperty($varName);
-                $prop->setAccessible(true);
-                
-                // change value
-                $prop->setValue($controller, $this->$methodName());
+        $bootstrap  = $this->getBootstrap();
+        
+        
+        $autoInitResources = $bootstrap->getResource('config')
+                                       ->getConfig('application')
+                                       ->autoinit
+                                       ->resource;
+        
+        foreach($autoInitResources as $resourceName => $varName) {
+            if ( $this->_hasVariable($varName) ) {
+                if ( $bootstrap->hasResource($resourceName) ) {
+                    $resource = $bootstrap->getResource($resourceName);
+                    $this->_setValueInVariable($varName, $resource);
+                }
             }
         }
     }
 
     /**
-     * Get EntityManager
-     * @return \Doctrine\Common\EventManager|null
+     * Set param in controller
+     * 
+     * @param string $varName
+     * @param string $resource 
      */
-    protected function _emSetter()
+    protected function _setValueInVariable($varName, $resource)
     {
-        $resourceName = 'em';
-        $bootstrap = $this->getBootstrap();
+        $controller = $this->getActionController();
+        
+        // Init variable
+        $obj = new ReflectionObject($controller);
+        $prop = $obj->getProperty($varName);
+        $prop->setAccessible(true);
 
-        if ( $bootstrap->hasResource($resourceName) ) {
-            return $bootstrap->getResource($resourceName);
-        } else {
-            return null;
-        }
-    }
-    
-    protected function _getInitMethods()
-    {
-
-        $reflectionClass = new ReflectionClass(__CLASS__);
-        $methods = $reflectionClass->getMethods();
-
-        return $this->_getSetters($methods);
-    }
-
-    protected function _getSetters($methods)
-    {
-        $initMethods = array();
-
-        foreach($methods as $method) {
-            if ( preg_match('|^(.+?)Setter|', $method->name, $match) ) {
-                $initMethods[ $match[1] ] = $method->name;
-            }
-        }
-
-        return $initMethods;
+        // change value
+        $prop->setValue($controller, $resource);
+        
     }
 
     /**
      * Check if controller has a variable
      *
-     * @param object $controller
      * @param string $variable
      * @return bool
      */
-    protected function _hasVariable($controller, $variable)
+    protected function _hasVariable($variable)
     {
+        $controller = $this->getActionController();
+        
         $reflection = new ReflectionObject($controller);
         return $reflection->hasProperty($variable);
     }
 
-
     /**
      * Get bootstrap
+     * 
      * @return Zend_Application_Bootstrap_Bootstrap
      */
     public function getBootstrap()

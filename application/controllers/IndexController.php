@@ -15,15 +15,13 @@ class IndexController extends Zend_Controller_Action
 
     public function init()
     {
-        $this->_em = $this->_helper->EntityManager();
-        
-        $this->_user = ( Zend_Auth::getInstance()->hasIdentity() )
-                     ? Zend_Auth::getInstance()->getIdentity()
-                     : new \Entities\User();
     }
     
     public function indexAction()
     {
+        
+        
+        
     }
 
 }
