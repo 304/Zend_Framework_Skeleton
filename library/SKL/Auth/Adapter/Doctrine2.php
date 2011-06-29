@@ -240,18 +240,7 @@ class SKL_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
      */
     protected function _performQuery(Doctrine\ORM\Query $query)
     {
-        try {
-            $resultIdentities = $query->execute();
-        } catch (Exception $e) {
-            /**
-             * @see Zend_Auth_Adapter_Exception
-             */
-            require_once 'Zend/Auth/Adapter/Exception.php';
-            throw new Zend_Auth_Adapter_Exception('The supplied parameters to \Doctrine\ORM\EntityManager failed to '
-                    . 'produce a valid sql statement, please check entity and column names '
-                    . 'for validity.');
-        }
-        return $resultIdentities;
+        return $query->execute();
     }
 
     /**

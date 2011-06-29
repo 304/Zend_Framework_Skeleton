@@ -21,7 +21,7 @@ class SKL_Application_Resource_UserIdentity
      */
     public function setDefaultIdentity($identityClass)
     {
-        $this->getBootstrap()->bootstrap('doctrine');
+        $this->getBootstrap()->bootstrap('doctrine')->getResource('doctrine');
         
         $this->_defaultIdentity = new $identityClass;
     }
@@ -45,6 +45,6 @@ class SKL_Application_Resource_UserIdentity
     {
         return ( Zend_Auth::getInstance()->hasIdentity() )
                ? Zend_Auth::getInstance()->getIdentity()
-               : $this->getDefaultIdentity();        
+               : $this->getDefaultIdentity();
     }
 }
