@@ -25,31 +25,5 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         );
 
     }
-
-    /**
-     * @todo: move to resource
-     */
-    protected function _initDoctrineAutoloader()
-    {
-        // Autoloader config
-        require_once 'Doctrine/Common/ClassLoader.php';
-
-        $autoloader = Zend_Loader_Autoloader::getInstance();
-
-        $loadNamespaces = array(
-            'Doctrine'     => APPLICATION_PATH . '/../library/',
-            'Symfony'      => APPLICATION_PATH . '/../library/Doctrine/',
-            'Entities'     => APPLICATION_PATH . '/models/',
-            'Proxies'      => APPLICATION_PATH . '/models/',
-            'Repositories' => APPLICATION_PATH . '/models/',
-            'Tools'        => APPLICATION_PATH . '/../library/SKL/Doctrine',
-        );
-
-
-        foreach ($loadNamespaces as $namespace => $path) {
-            $loader = new \Doctrine\Common\ClassLoader($namespace, realpath($path));
-            $autoloader->pushAutoloader(array($loader, 'loadClass'), $namespace);
-        }        
-    }
 }
 

@@ -18,6 +18,8 @@ class SKL_Application_Resource_Doctrine
 
     public function init()
     {
+        $this->_loadDoctrineNamespaces();
+        
         return $this->_getEntityManager();
     }
 
@@ -28,7 +30,6 @@ class SKL_Application_Resource_Doctrine
      */
     protected function _getEntityManager()
     {
-        $this->getBootstrap()->bootstrap('doctrineAutoloader');
         $options = $this->getOptions();
         
         $config = new \Doctrine\ORM\Configuration();
@@ -63,6 +64,14 @@ class SKL_Application_Resource_Doctrine
 
         return $em;
     }    
+
+    /**
+     * Load doctrine namespaces
+     */
+    protected function _loadDoctrineNamespaces()
+    {
+        $this->getBootstrap()->bootstrap('autoload');
+    }
     
     /**
      * Get cache for Doctrine
