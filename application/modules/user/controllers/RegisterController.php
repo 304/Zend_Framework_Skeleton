@@ -10,7 +10,6 @@ class User_RegisterController extends Zend_Controller_Action
 
     public function init()
     {
-        $this->_em = $this->_helper->EntityManager();
     }
     
     public function indexAction()

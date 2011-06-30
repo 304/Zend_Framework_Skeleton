@@ -1,8 +1,9 @@
 <?php
-
+/**
+ * Doctrine auth helper
+ */
 class SKL_Controller_Action_Helper_Auth extends Zend_Controller_Action_Helper_Abstract
 {
-
     /**
      * @return SKL_Controller_Action_Helper_Auth
      */
