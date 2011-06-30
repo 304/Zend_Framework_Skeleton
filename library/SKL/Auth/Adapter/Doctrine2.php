@@ -52,36 +52,6 @@ class SKL_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
     protected $_authenticateResultInfo = null;
 
     /**
-     * __construct() - Sets configuration options
-     *
-     * @param  \Doctrine\ORM\EntityManager      $em
-     * @param  string                   $entityName
-     * @param  string                   $identityColumn
-     * @param  string                   $credentialColumn
-     * @param  string                   $credentialTreatment
-     * @return void
-     */
-    public function __construct($em = null, $entityName = null, $identityColumn = null,
-                                $credentialColumn = null)
-    {
-        if (null !== $em) {
-            $this->setEm($em);
-        }
-
-        if (null !== $entityName) {
-            $this->setEntityName($entityName);
-        }
-
-        if (null !== $identityColumn) {
-            $this->setIdentityColumn($identityColumn);
-        }
-
-        if (null !== $credentialColumn) {
-            $this->setCredentialColumn($credentialColumn);
-        }
-    }
-
-    /**
      *
      * setEm() - set the Doctrine2 Entity Manager
      * @param \Doctrine\ORM\EntityManager $em
@@ -205,7 +175,7 @@ class SKL_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
         }
 
         $this->_authenticateResultInfo = array(
-            'code' => Zend_Auth_Result::FAILURE,
+            'code'     => Zend_Auth_Result::FAILURE,
             'identity' => $this->_identity,
             'messages' => array()
         );
@@ -252,32 +222,27 @@ class SKL_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
      */
     protected function _validateResult($resultIdentities)
     {
-        if (count($resultIdentities) < 1) {
+        if ( ! $resultIdentities ) {
             $this->_authenticateResultInfo['code'] = Zend_Auth_Result::FAILURE_IDENTITY_NOT_FOUND;
             $this->_authenticateResultInfo['messages'][] = 'A record with the supplied identity could not be found.';
-            return $this->_authenticateCreateAuthResult();
-        } elseif (count($resultIdentities) > 1) {
+        } elseif ( count($resultIdentities) > 1 ) {
             $this->_authenticateResultInfo['code'] = Zend_Auth_Result::FAILURE_IDENTITY_AMBIGUOUS;
             $this->_authenticateResultInfo['messages'][] = 'More than one record matches the supplied identity.';
-            return $this->_authenticateCreateAuthResult();
-        } elseif (count($resultIdentities) == 1) {
+        } else {
             $resultIdentity = $resultIdentities[0];
 
-            $checkLoginCorrect = $this->_checkLoginCorrect($resultIdentity, $this->_identity);
+            $checkLoginCorrect      = $this->_checkLoginCorrect($resultIdentity, $this->_identity);
             $checkCredentialCorrect = $this->_checkCredentialCorrect($resultIdentity, $this->_credential);
             
             if ( $checkLoginCorrect && $checkCredentialCorrect ) {
                 $this->_authenticateResultInfo['code'] = Zend_Auth_Result::SUCCESS;
-                $this->_authenticateResultInfo['identity'] = $this->_identity;
                 $this->_authenticateResultInfo['messages'][] = 'Authentication successful.';
             } else {
                 $this->_authenticateResultInfo['code'] = Zend_Auth_Result::FAILURE_CREDENTIAL_INVALID;
                 $this->_authenticateResultInfo['messages'][] = 'Supplied credential is invalid.';
-            }
-        } else {
-            $this->_authenticateResultInfo['code'] = Zend_Auth_Result::FAILURE_UNCATEGORIZED;
+            }            
         }
-
+        
         return $this->_authenticateCreateAuthResult();
     }
 
@@ -306,6 +271,7 @@ class SKL_Auth_Adapter_Doctrine2 implements Zend_Auth_Adapter_Interface
 
     /**
      * Check if password is correct
+     * 
      * @param object $resultIdentity - user model object
      * @param string $credential - password
      * @return bool
