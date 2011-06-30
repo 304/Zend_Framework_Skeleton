@@ -7,11 +7,6 @@ class User_RegisterController extends Zend_Controller_Action
      */
     private $_em = null;
 
-
-    public function init()
-    {
-    }
-    
     public function indexAction()
     {
         $form = new User_Form_Register();
@@ -34,7 +29,7 @@ class User_RegisterController extends Zend_Controller_Action
                 $this->_em->persist($user);
                 $this->_em->flush();
                 
-                $this->_redirect($this->getHelper('url')->url(array(), 'main-page'));
+                $this->_helper->redirector->gotoRoute(array(), 'main-page');
             }
         }
         
@@ -43,5 +38,3 @@ class User_RegisterController extends Zend_Controller_Action
         ));
     }
 }
-
-?>

@@ -7,11 +7,6 @@ class User_IndexController extends Zend_Controller_Action
      */
     private $_em = null;
 
-
-    public function init()
-    {
-    }
-    
     public function indexAction()
     {
         $form = new User_Form_Login();
@@ -26,7 +21,7 @@ class User_IndexController extends Zend_Controller_Action
                 $remember = $form->getValue('remember');
                 
                 if ( $this->_authenticate($username, $password, $remember) ) {
-                    $this->_redirect($this->getHelper('url')->url(array(), 'main-page'));
+                    $this->_helper->redirector->gotoRoute(array(), 'main-page');
                 } else {
                     $message = 'Not valid';
                 }
@@ -44,9 +39,17 @@ class User_IndexController extends Zend_Controller_Action
     public function logoutAction()
     {
         $this->_helper->auth->logout();
-        $this->_redirect($this->getHelper('url')->url(array(), 'main-page'));
+        $this->_helper->redirector->gotoRoute(array(), 'main-page');
     }    
     
+    /**
+     * Authenticate user
+     * 
+     * @param string $username
+     * @param string $password
+     * @param string $remember
+     * @return bool
+     */
     protected function _authenticate($username, $password, $remember)
     {
         $adapter = $this->_getAuthAdapter($username, $password);
@@ -64,6 +67,13 @@ class User_IndexController extends Zend_Controller_Action
         return false;
     }
     
+    /**
+     * Get auth adapter
+     * 
+     * @param string $username
+     * @param string $password
+     * @return SKL_Auth_Adapter_Doctrine2 
+     */
     protected function _getAuthAdapter($username, $password)
     {
         $authAdapter = new SKL_Auth_Adapter_Doctrine2();
@@ -78,5 +88,3 @@ class User_IndexController extends Zend_Controller_Action
         return $authAdapter;
     }    
 }
-
-?>
