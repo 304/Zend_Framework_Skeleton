@@ -29,7 +29,8 @@ class User_IndexController extends Zend_Controller_Action
         }
         
         $this->view->assign(array(
-            'form' => $form,
+            'form'    => $form,
+            'message' => isset($message) ? $message : null
         ));
     }
     
