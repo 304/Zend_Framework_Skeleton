@@ -99,4 +99,33 @@ class User_IndexControllerTest extends ControllerTestCase
         $this->dispatch('/login');
         $this->assertQueryContentContains('div.error', 'Not valid');
     }
+    
+    public function testLogoutRoute()
+    {
+        $this->dispatch('/logout');
+        $this->assertModule('user');
+        $this->assertController('index');
+        $this->assertAction('logout');
+        $this->assertRoute('user-logout');
+        
+        
+        $this->assertRedirectTo('/');
+    }
+
+
+    public function testLogoutForAuthorizedUser()
+    {
+        $this->testLoginSuccess();
+        
+        $user = Zend_Auth::getInstance()->getIdentity();
+        
+        $this->assertFalse($user->isGuest());
+        
+        $this->dispatch('/logout');
+        
+        $this->assertRedirectTo('/');
+        
+        $user = Zend_Auth::getInstance()->getIdentity();
+        $this->assertNull($user);
+    }
 }
