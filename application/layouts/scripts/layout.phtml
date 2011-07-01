@@ -1,6 +1,11 @@
 <?php
 /** @var $this Zend_View */
 $this->headLink(array('rel' => 'favicon', 'type' => 'image/x-icon', 'href' => '/favicon.ico'));
+
+/* Title */
+$this->headTitle('Skeleton');
+$this->headTitle()->setSeparator(' / ');
+
 ?>
 <?php echo $this->doctype() ?>
 <html>
