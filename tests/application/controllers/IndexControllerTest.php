@@ -3,7 +3,7 @@ include_once 'ControllerTestCase.php';
 class IndexControllerTest extends ControllerTestCase
 {
 
-    public function testIndex()
+    public function testRouteIndex()
     {
         $this->dispatch('/');
         $this->assertAction("index");

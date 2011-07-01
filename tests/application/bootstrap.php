@@ -1,4 +1,6 @@
 <?php
+
+
 define('APPLICATION_ENV', 'testing');
 
 // Define path to application directory
@@ -13,9 +15,9 @@ defined('APPLICATION_ENV')
 set_include_path(implode(PATH_SEPARATOR, array(
     get_include_path(),
     realpath(APPLICATION_PATH . '/../library'),
+    realpath(APPLICATION_PATH . '/../tests/application/'),
     
 )));
 
 /** Zend_Application */
 require_once 'Zend/Application.php';
-
