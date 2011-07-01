@@ -1,5 +1,6 @@
 <?php
-
+use Doctrine\ORM\EntityManager,
+    Doctrine\ORM\Configuration;
 /**
  * Resource for getting modules config
  */
@@ -32,7 +33,13 @@ class SKL_Application_Resource_Doctrine
     {
         $options = $this->getOptions();
         
-        $config = new \Doctrine\ORM\Configuration();
+        if ( ! isset($options['conn'])) {
+            throw new Zend_Config_Exception('No doctrine connection settings set');
+        }
+        
+        $connectionOptions = $options['conn'];
+        
+        $config = new Configuration();
         
         // Set cache
         $cache = $this->_getCache();
@@ -51,16 +58,7 @@ class SKL_Application_Resource_Doctrine
         $driverImpl = $config->newDefaultAnnotationDriver($options['path']['entities']);
         $config->setMetadataDriverImpl($driverImpl);
 
-        // Database connection config
-        $connectionOptions = array(
-            'host'     => $options['conn']['host'],
-            'driver'   => $options['conn']['driver'],
-            'user'     => $options['conn']['user'],
-            'password' => $options['conn']['pass'],
-            'dbname'   => $options['conn']['dbname'],
-        );
-
-        $em = \Doctrine\ORM\EntityManager::create($connectionOptions, $config);
+        $em = EntityManager::create($connectionOptions, $config);
 
         return $em;
     }    
