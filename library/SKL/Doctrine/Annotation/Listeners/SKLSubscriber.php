@@ -76,6 +76,12 @@ abstract class SKLSubscriber implements EventSubscriber
         $reader = new \Doctrine\Common\Annotations\AnnotationReader();
         $reader->setAnnotationNamespaceAlias($this->_namespace, $this->_namespaceAlias);
 
+        $reader->setIgnoreNotImportedAnnotations(true);
+        $reader->setEnableParsePhpImports(false);
+        $reader = new \Doctrine\Common\Annotations\CachedReader(
+            new \Doctrine\Common\Annotations\IndexedReader($reader), new \Doctrine\Common\Cache\ArrayCache()
+        );        
+
         // 1. Autoload (but may be slow)
         //	$reader->setAutoloadAnnotations(true);
 
